@@ -1,0 +1,62 @@
+version: '2'
+services:
+  edr-lb:
+    image: 'nginx:1.10-alpine'
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    ports:
+      - 81:80
+
+  edr-api:
+    build: ../edr
+    ports:
+    - 81:80
+    environment:
+      NODE_ENV: production
+      PORT: 80
+      PG: edr-db
+    depends_on:
+    - edr-db
+    - redis
+
+  edr-docs:
+    image: 'vanuan/swagger-ui'
+    ports:
+      - 82:80
+
+
+  edr-db:
+    image: kiasaki/alpine-postgres:9.5
+    environment:
+      PGDATA: /var/lib/postgresql/data
+    volumes:
+      - edr-db:/var/lib/postgresql/data
+
+  redis:
+    image: 'redis'
+    command: redis-server --appendonly yes
+    expose:
+      - '6379'
+    volumes:
+      - /data
+
+  edr-uploader:
+    build: ../edr-uploader
+    volumes:
+    - ./data:/data/edr/
+    depends_on:
+    - edr-db
+    - edr-migrations
+    environment:
+      PG_CONNECTION_STRING: postgres://postgres@edr-db/postgres
+
+  edr-migrations:
+    build: ../edr-migrations
+    command: sh -c '/wait-for-it.sh -t 100 edr-db:5432 && npm install && knex migrate:latest'
+    depends_on:
+      - edr-db
+    environment:
+      PG_CONNECTION_STRING: postgres://postgres@edr-db/postgres
+
+volumes:
+  edr-db:

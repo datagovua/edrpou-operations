@@ -1,0 +1,24 @@
+version: '2'
+services:
+  edr-lb:
+    ports:
+      80:80
+
+  edr-api:
+    image: 'vanuan/edrpou-api:latest'
+    build: ''
+    restart: always
+    command: sh -c '/wait-for-it.sh -t 100 edr-db:5432 && sails lift'
+
+  edr-uploader:
+    image: 'vanuan/edrpou-uploader:latest'
+    build: ''
+    volumes:
+    - /root:/data/edr/
+
+  edr-migrations:
+    image: vanuan/edrpou-migrations:latest
+    build: ''
+
+  edr-db:
+    restart: always
