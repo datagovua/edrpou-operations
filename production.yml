@@ -2,7 +2,7 @@ version: '2'
 services:
   edr-lb:
     ports:
-      80:80
+      - 80:80
 
   edr-api:
     image: 'vanuan/edrpou-api:latest'
