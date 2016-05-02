@@ -1,0 +1,8 @@
+services:
+  edr-lb:
+    ports:
+      - 83:80
+  edr-api:
+    ports:
+    - 81:80
+    build: ../edr
