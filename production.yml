@@ -8,6 +8,8 @@ services:
     image: 'vanuan/edrpou-api:latest'
     restart: always
     command: sh -c '/wait-for-it.sh -t 100 edr-db:5432 && sails lift'
+    ports:
+      - 81:80
 
   edr-uploader:
     image: 'vanuan/edrpou-uploader:latest'
