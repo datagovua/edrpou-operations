@@ -23,3 +23,6 @@ services:
 
   edr-db:
     restart: always
+
+  edr-static:
+    restart: always
