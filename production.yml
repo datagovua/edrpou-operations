@@ -26,3 +26,6 @@ services:
 
   edr-static:
     restart: always
+
+  edr-graphql:
+    restart: always

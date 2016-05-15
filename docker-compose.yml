@@ -57,5 +57,10 @@ services:
     ports:
       - 83:80
 
+  edr-graphql:
+    image: 'vanuan/edrpou-graphql'
+    ports:
+      - 84:80
+
 volumes:
   edr-db:
