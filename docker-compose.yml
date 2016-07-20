@@ -54,6 +54,8 @@ services:
 
   edr-static:
     image: 'vanuan/edrpou-static'
+    environment:
+      GRAPHQL_URL: "http://edr-graphql/"
     ports:
       - 83:80
 
