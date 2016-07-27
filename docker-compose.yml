@@ -65,7 +65,7 @@ services:
       - 84:80
 
   edr-elastic:
-    image: 'portefaix/elasticsearch'
+    image: 'portefaix/elasticsearch:2.2.0'
     ports:
       - 9200:9200
       - 9300:9300
