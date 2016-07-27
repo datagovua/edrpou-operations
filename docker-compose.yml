@@ -64,5 +64,11 @@ services:
     ports:
       - 84:80
 
+  edr-elastic:
+    image: 'portefaix/elasticsearch'
+    ports:
+      - 9200:9200
+      - 9300:9300
+
 volumes:
   edr-db:
