@@ -64,11 +64,20 @@ services:
     ports:
       - 84:80
 
-  edr-elastic:
+  elasticsearch:
     image: 'portefaix/elasticsearch:2.2.0'
     ports:
       - 9200:9200
       - 9300:9300
+    volumes:
+      - elasticsearch:/usr/share/elasticsearch/data
+
+  kibana:
+    image: k0st/alpine-kibana
+    ports:
+     - 5601:5601
+    depends_on:
+     - elasticsearch
 
   edr-uploader-elastic:
     image: 'vanuan/edrpou-uploader:latest'
@@ -83,3 +92,4 @@ services:
 
 volumes:
   edr-db:
+  elasticsearch:
