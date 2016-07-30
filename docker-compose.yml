@@ -73,7 +73,7 @@ services:
       - elasticsearch:/usr/share/elasticsearch/data
 
   kibana:
-    image: k0st/alpine-kibana
+    image: 'mklimuk/alpine-kibana'
     ports:
      - 5601:5601
     depends_on:
