@@ -1,0 +1,97 @@
+version: '3'
+services:
+  edr-lb:
+    image: 'nginx:1.10-alpine'
+    volumes:
+      - /nfs/edr/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - /nfs/edr/ssl/:/ssl/
+      - /nfs/edr/ssl/acme/:/acme/
+    ports:
+      - 80:80
+      - 443:443
+
+  edr-api:
+    image: 'vanuan/edrpou-api:latest'
+    command: sh -c '/wait-for-it.sh -t 100 edr-db:5432 && sails lift'
+    environment:
+      NODE_ENV: production
+      PORT: 80
+      PG: edr-db
+    depends_on:
+    - edr-db
+    - redis
+
+  edr-api-docs:
+    image: 'vanuan/swagger-ui'
+
+  edr-db:
+    image: kiasaki/alpine-postgres:9.5
+    environment:
+      PGDATA: /var/lib/postgresql/data
+    volumes:
+      - /nfs/edr/postgres:/var/lib/postgresql/data
+
+  redis:
+    image: 'redis:3.2.3-alpine'
+    command: redis-server --appendonly yes
+    volumes:
+      - /nfs/edr/redis:/data
+
+  edr-static:
+    image: 'vanuan/edrpou-static'
+    environment:
+      GRAPHQL_URL: "http://edr-graphql/"
+      ELASTIC_URL: "http://elasticsearch:9200/companies_index/"
+
+  edr-graphql:
+    image: 'vanuan/edrpou-graphql'
+    environment:
+      API_URL: 'http://edr-api/api'
+      ELASTIC_URL: "http://elasticsearch:9200/companies_index/"
+
+  elasticsearch:
+    image: 'portefaix/elasticsearch:2.3.0'
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+        reservations:
+          memory: 1G
+    environment:
+      ES_HEAP_SIZE: '500m'
+    volumes:
+      - /nfs/edr/elasticsearch:/usr/share/elasticsearch/data
+
+#  kibana:
+#    image: 'mklimuk/alpine-kibana'
+#    ports:
+#     - 5601:5601
+#    depends_on:
+#     - elasticsearch
+#  edr-uploader-elastic:
+#    image: 'vanuan/edrpou-uploader:latest'
+#    depends_on:
+#     - edr-db
+#     - elasticsearch
+#    environment:
+#      PG_CONNECTION_STRING: postgres://postgres@edr-db/postgres
+#      ELASTIC_HOST: elasticsearch:9200
+#    command: sh -c '/wait-for-it.sh -t 100 elasticsearch:9200 && node /src/pgToElastic.js'
+#  edr-uploader:
+#    build: ../edr-uploader
+#    volumes:
+#    - ./data:/data/edr/
+#    depends_on:
+#    - edr-db
+#    - edr-migrations
+#    environment:
+#      PG_CONNECTION_STRING: postgres://postgres@edr-db/postgres
+#
+#  edr-migrations:
+#    build: ../edr-migrations
+#    command: sh -c '/wait-for-it.sh -t 100 edr-db:5432 && npm install && knex migrate:latest'
+#    depends_on:
+#      - edr-db
+#    environment:
+#      PG_CONNECTION_STRING: postgres://postgres@edr-db/postgres
+
