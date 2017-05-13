@@ -1,14 +1,26 @@
-version: '3'
+version: '3.2'
 services:
   edr-lb:
     image: 'nginx:1.10-alpine'
     volumes:
       - /nfs/edr/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - /nfs/edr/ssl/:/ssl/
       - /nfs/edr/ssl/acme/:/acme/
+      - /nfs/edr/ssl/dhparam.pem:/ssl/dhparam.pem
+      - /nfs/edr/letsencrypt/live/edr.data-gov-ua.org/fullchain.pem:/ssl/edr.data-gov-ua.org.pem
+      - /nfs/edr/letsencrypt/live/edr.data-gov-ua.org/privkey.pem:/ssl/edr.data-gov-ua.org.key
     ports:
-      - 80:80
-      - 443:443
+      - target: 80
+        published: 80
+        protocol: tcp
+        mode: host
+      - target: 443
+        published: 443
+        protocol: tcp
+        mode: host
+    deploy:
+      placement:
+        constraints:
+          - node.hostname == ubuntu-1gb-fra1-01
 
   edr-api:
     image: 'vanuan/edrpou-api:latest'
@@ -20,35 +32,29 @@ services:
     depends_on:
     - edr-db
     - redis
-
   edr-api-docs:
     image: 'vanuan/swagger-ui'
-
   edr-db:
     image: kiasaki/alpine-postgres:9.5
     environment:
       PGDATA: /var/lib/postgresql/data
     volumes:
       - /nfs/edr/postgres:/var/lib/postgresql/data
-
   redis:
     image: 'redis:3.2.3-alpine'
     command: redis-server --appendonly yes
     volumes:
       - /nfs/edr/redis:/data
-
   edr-static:
     image: 'vanuan/edrpou-static'
     environment:
       GRAPHQL_URL: "http://edr-graphql/"
       ELASTIC_URL: "http://elasticsearch:9200/companies_index/"
-
   edr-graphql:
     image: 'vanuan/edrpou-graphql'
     environment:
       API_URL: 'http://edr-api/api'
       ELASTIC_URL: "http://elasticsearch:9200/companies_index/"
-
   elasticsearch:
     image: 'portefaix/elasticsearch:2.3.0'
     deploy:
@@ -61,7 +67,6 @@ services:
       ES_HEAP_SIZE: '500m'
     volumes:
       - /nfs/edr/elasticsearch:/usr/share/elasticsearch/data
-
 #  kibana:
 #    image: 'mklimuk/alpine-kibana'
 #    ports:
@@ -94,4 +99,3 @@ services:
 #      - edr-db
 #    environment:
 #      PG_CONNECTION_STRING: postgres://postgres@edr-db/postgres
-

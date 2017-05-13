@@ -1,0 +1,16 @@
+version: '3'
+services:
+  piwik:
+    image: piwik:3.0.3-apache
+    volumes:
+      - /nfs/edr/piwik.ini.php:/var/www/html/config/config.ini.php
+    ports:
+      - 9000:80
+  db:
+    image: gjchen/mariadb
+    volumes:
+      #- /nfs/edr/piwik/run_mysqld/:/run/mysqld
+      - /nfs/edr/piwik/:/var/lib/mysql
+    environment:
+      MYSQLD_OPT: "--syslog --skip-grant-tables"
+
