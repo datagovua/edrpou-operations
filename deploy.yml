@@ -6,8 +6,7 @@ services:
       - /nfs/edr/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - /nfs/edr/ssl/acme/:/acme/
       - /nfs/edr/ssl/dhparam.pem:/ssl/dhparam.pem
-      - /nfs/edr/letsencrypt/live/edr.data-gov-ua.org/fullchain.pem:/ssl/edr.data-gov-ua.org.pem
-      - /nfs/edr/letsencrypt/live/edr.data-gov-ua.org/privkey.pem:/ssl/edr.data-gov-ua.org.key
+      - /nfs/edr/letsencrypt/:/ssl/letsencrypt/
     ports:
       - target: 80
         published: 80
@@ -32,6 +31,12 @@ services:
     depends_on:
     - edr-db
     - redis
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 512M
   edr-api-docs:
     image: 'vanuan/swagger-ui'
   edr-db:
@@ -50,11 +55,23 @@ services:
     environment:
       GRAPHQL_URL: "http://edr-graphql/"
       ELASTIC_URL: "http://elasticsearch:9200/companies_index/"
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 512M
   edr-graphql:
     image: 'vanuan/edrpou-graphql'
     environment:
       API_URL: 'http://edr-api/api'
       ELASTIC_URL: "http://elasticsearch:9200/companies_index/"
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 512M
   elasticsearch:
     image: 'portefaix/elasticsearch:2.3.0'
     deploy:
@@ -67,6 +84,17 @@ services:
       ES_HEAP_SIZE: '500m'
     volumes:
       - /nfs/edr/elasticsearch:/usr/share/elasticsearch/data
+  renew:
+    image: 'certbot/certbot'
+    volumes:
+      - /nfs/edr/ssl/acme/:/acme/.well-known/acme-challenge/
+      - /nfs/edr/letsencrypt:/etc/letsencrypt
+    command: 'certonly --webroot -w /acme/ -n -d edr.data-gov-ua.org'
+    deploy:
+      restart_policy:
+        condition: any
+        delay: 24h
+
 #  kibana:
 #    image: 'mklimuk/alpine-kibana'
 #    ports:
