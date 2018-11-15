@@ -19,7 +19,7 @@ services:
     deploy:
       placement:
         constraints:
-          - node.hostname == ubuntu-1gb-fra1-01
+          - node.hostname == do-edr1
 
   edr-api:
     image: 'vanuan/edrpou-api:latest'
