@@ -1,4 +1,4 @@
-eval $(docker-machine env do-edr3)
+eval $(docker-machine env do-edr1)
 
 FILE=${1:-deploy.yml}
 STACK=${2:-edr}
